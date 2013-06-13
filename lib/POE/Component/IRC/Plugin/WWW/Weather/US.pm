@@ -7,7 +7,7 @@ use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 use Mojo::UserAgent;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new {
     my $package = shift;
