@@ -1,11 +1,11 @@
 ---
-abstract: 'IRC plugin to weather US weather by zip code'
+abstract: 'IRC plugin that fetches US weather by zip code'
 author:
   - 'Curtis Brandt <curtis@cpan.org>'
 build_requires:
   Test::More: 0.88
 configure_requires:
-  Module::Build::Tiny: 0.019
+  Module::Build::Tiny: 0.023
 dynamic_config: 0
 generated_by: 'Dist::Milla version v1.0.2, Dist::Zilla version 4.300034, CPAN::Meta::Converter version 2.120921'
 license: perl
@@ -22,15 +22,13 @@ no_index:
     - eg
     - examples
 requires:
-  HTML::TreeBuilder::XPath: 0
-  LWP::Simple: 0
+  Mojo::UserAgent: 4.14
   POE::Component::IRC::Plugin: 0
-  URI: 0
-  perl: 5.008005
+  perl: 5.010
 resources:
   bugtracker: https://github.com/aggrolite/POE-Component-IRC-Plugin-WWW-Weather-US/issues
   homepage: https://github.com/aggrolite/POE-Component-IRC-Plugin-WWW-Weather-US
   repository: https://github.com/aggrolite/POE-Component-IRC-Plugin-WWW-Weather-US.git
-version: 0.01
+version: 0.02
 x_contributors:
   - 'Curtis Brandt <curtisjbrandt@gmail.com>'

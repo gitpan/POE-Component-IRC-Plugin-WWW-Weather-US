@@ -1,6 +1,6 @@
 NAME
-    POE::Component::IRC::Plugin::WWW::Weather::US - IRC plugin to weather US
-    weather by zip code
+    POE::Component::IRC::Plugin::WWW::Weather::US - IRC plugin that fetches
+    US weather by zip code
 
 SYNOPSIS
       use strict;

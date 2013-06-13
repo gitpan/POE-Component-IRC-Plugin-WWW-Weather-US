@@ -1,15 +1,13 @@
 package POE::Component::IRC::Plugin::WWW::Weather::US;
 
-use 5.008_005;
+use 5.010;
 use strict;
 use warnings;
 
 use POE::Component::IRC::Plugin qw( :ALL );
-use HTML::TreeBuilder::XPath;
-use LWP::Simple qw(get);
-use URI;
+use Mojo::UserAgent;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new {
     my $package = shift;
@@ -46,21 +44,13 @@ sub S_public {
     return PCI_EAT_NONE;
 }
 
+# the link I use for zip redirects, so set max_redirects to 1
 sub _get_weather {
     my ($self, $zip) = @_ or return;
-    my $uri = URI->new('http://forecast.weather.gov/zipcity.php');
-    $uri->query_form({inputstring => $zip});
-
-    my $content = get($uri->as_string);
-    my $tree    = HTML::TreeBuilder::XPath->new;
-    $tree->parse($content);
-
-    # for now, just get the first day listed
-    my ($day) = $tree->findnodes(    #
-        './/ul[@class="point-forecast-7-day"][1]/li[@class=~/^row-(?:odd|even)$/]'
-    ) or return;
-    $_->push_content(': ') for $day->findnodes('span');
-    return $day->as_trimmed_text;
+    Mojo::UserAgent->new->max_redirects(1)
+      ->get("http://forecast.weather.gov/zipcity.php?inputstring=$zip")
+      ->res->dom->find('.point-forecast-7-day .row-odd')
+      ->map(sub { $_->find('span')->pluck('text') . ': ' . $_->text })->[0];
 }
 
 1;
@@ -70,7 +60,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::WWW::Weather::US - IRC plugin to weather US weather by zip code
+POE::Component::IRC::Plugin::WWW::Weather::US - IRC plugin that fetches US weather by zip code
 
 =head1 SYNOPSIS
 
