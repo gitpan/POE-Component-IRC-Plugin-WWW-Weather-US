@@ -6,12 +6,16 @@ use warnings;
 
 use POE::Component::IRC::Plugin qw( :ALL );
 use Mojo::UserAgent;
+use Cache::Memory::Simple;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub new {
-    my $package = shift;
-    return bless {}, $package;
+    my $class = shift;
+    my $self  = bless {
+        cache => Cache::Memory::Simple->new,
+    }, $class;
+    return $self;
 }
 
 sub PCI_register {
@@ -34,8 +38,8 @@ sub S_public {
     my $channel = ${$_[1]}->[0];
     my $msg     = ${$_[2]};
 
-    if ($msg =~ /^!weather\s+(\d{5})/i) {
-        my $reply = $self->_get_weather($1);
+    if (my ($zip) = $msg =~ /^!weather\s+(\d{5})/i) {
+        my $reply = $self->_get_weather($zip);
         $irc->yield(privmsg => $channel => "$nick: $reply") if $reply;
         return PCI_EAT_PLUGIN;
     }
@@ -47,10 +51,17 @@ sub S_public {
 # the link I use for zip redirects, so set max_redirects to 1
 sub _get_weather {
     my ($self, $zip) = @_ or return;
-    Mojo::UserAgent->new->max_redirects(1)
-      ->get("http://forecast.weather.gov/zipcity.php?inputstring=$zip")
-      ->res->dom->find('.point-forecast-7-day .row-odd')
-      ->map(sub { $_->find('span')->pluck('text') . ': ' . $_->text })->[0];
+    $self->{cache}->purge(); # purge any expired items
+    return $self->{cache}->get_or_set(
+        $zip,
+        sub {
+            Mojo::UserAgent->new->max_redirects(1)
+              ->get("http://forecast.weather.gov/zipcity.php?inputstring=$zip")
+              ->res->dom->find('.point-forecast-7-day .row-odd')
+              ->map(sub { $_->find('span')->pluck('text') . ': ' . $_->text })->[0];
+        },
+        3600 # cache for 1 hour
+    );
 }
 
 1;
